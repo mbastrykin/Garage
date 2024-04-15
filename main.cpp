@@ -1,71 +1,116 @@
 #include <SFML/Graphics.hpp>
-#include <iostream>
 
+sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "Garage");
+double CurrentFrame = 0;
 
-sf::RenderWindow window(sf::VideoMode(640, 480), "Garage");
-
-class Hero {
+class Player {
 public: 
     double x, y, Weight, Height;
-    sf::Texture herotexture;
-    sf::Sprite herosprite;
+    sf::Texture playertexture;
+    sf::Sprite playersprite;
 
-    Hero() {
-        herotexture.loadFromFile("Image/Hero/hero.png");
-        herosprite.setTexture(herotexture);
-        herosprite.setTextureRect(sf::IntRect(0, 192, 96, 96));
-        herosprite.setPosition(50, 25);
-    }
-    
-    void move(double offsetX, double offsetY) {
-        herosprite.move(offsetX, offsetY);
+    bool isGround;
+
+    Player() {
+        playertexture.loadFromFile("Image/Hero/hero.png");
+        playersprite.setTexture(playertexture);
+        playersprite.setTextureRect(sf::IntRect(0, 192, 96, 96));
+        playersprite.setPosition(50, 25);
+
+        isGround = true;
     }
 };
 
-//class Garage {
-//public: 
-//    double x, y, Weight, Height;
-//    sf::Texture garagetexture;
-//    sf::Sprite garagesprite;
-//    Garage() {
-//        garagetexture.loadFromFile("Image/Hero/hero.png");
-//        garagesprite.setTexture(garagetexture);
-//        garagesprite.setTextureRect(sf::IntRect(0, 192, 96, 96));
-//        garagesprite.setPosition(50, 25);
-//    }
-//};
+class Background {
+public:
+    sf::Texture backtext;
+    sf::Sprite backsprite;
 
+    Background() {
+        backtext.loadFromFile("Image/Background/background.jpg");
+        backsprite.setTexture(backtext);
+        backsprite.setPosition(0, 0);
+    }
+
+};
+
+class Garage : Player{
+public: 
+   double x, y, startposX,startposY; 
+    sf::Texture garagetexture;
+    sf::Sprite garagesprite;
+    Garage() {
+        startposX = 600;
+        startposY = 100;
+        garagetexture.loadFromFile("Image/Garage/Garage.png");
+        garagesprite.setTexture(garagetexture);
+        garagesprite.setPosition(startposX,startposY);
+   }
+};
+class Damage : Player {
+public: 
+    double x, y, Weight, Height;
+};
 
 int main()
 {
-    Hero hero;
+    Player hero;
+    Background back1;
+    Garage garage1;
     sf::Clock clock;
-    double CurrentFrame = 0;
+    
+    
+
     while (window.isOpen()) {
+
+        float time = clock.getElapsedTime().asMicroseconds();
+        clock.restart();
+        int delaytime = 600;
+        time = time / delaytime++;
+
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
         }
-
-        if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A)))) {
-            hero.move(-0.1, 0);
-            hero.herosprite.setTextureRect(sf::IntRect(0, 96, 96, 96));
+        CurrentFrame += 0.005 * time;
+        if (CurrentFrame > 3) CurrentFrame -= 3;
+        hero.playersprite.setTextureRect(sf::IntRect(96 * int(CurrentFrame), 192, 96, 96));
+        hero.playersprite.move(0 * time, 0);
+        back1.backsprite.move(0 * time, 0);
+        garage1.garagesprite.move(-0.1* time, 0);
+       
+        if (hero.isGround) {
+            if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::W))) {
+                CurrentFrame += 0.005 * time;
+                if (CurrentFrame > 3) CurrentFrame -= 3;
+                hero.playersprite.setTextureRect(sf::IntRect(96 * int(CurrentFrame), 288, 96, 96));
+                hero.playersprite.move(0, -0.5 * time);
+            }
         }
-        if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || (sf::Keyboard::isKeyPressed(sf::Keyboard::D)))) {
-            hero.move(0.1, 0); 
-            hero.herosprite.setTextureRect(sf::IntRect(0, 192, 96, 96));
+       /* if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A)))) {
+            CurrentFrame += 0.005 * time;
+            if (CurrentFrame > 3) CurrentFrame -= 3; 
+            hero.herosprite.setTextureRect(sf::IntRect(96 * int(CurrentFrame), 96, 96, 96)); 
+            hero.herosprite.move(-0.1 * time, 0);
         }
-        if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::W))) {
-            hero.move(0, -0.1);
-            hero.herosprite.setTextureRect(sf::IntRect(0, 288, 96, 96));
+        if((sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || (sf::Keyboard::isKeyPressed(sf::Keyboard::D)))) {
+            CurrentFrame += 0.005 * time; 
+            if (CurrentFrame > 3) CurrentFrame -= 3; 
+            hero.herosprite.setTextureRect(sf::IntRect(96 * int(CurrentFrame), 192, 96, 96)); 
+            hero.herosprite.move(0.1 * time, 0);
         }
+      
         if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::S))){
-            hero.move(0, 0.1);
-            hero.herosprite.setTextureRect(sf::IntRect(0, 0, 96, 96));
-        } 
+            CurrentFrame += 0.005 * time; 
+            if (CurrentFrame > 3) CurrentFrame -= 3; 
+            hero.herosprite.setTextureRect(sf::IntRect(96 * int(CurrentFrame), 0, 96, 96)); 
+            hero.herosprite.move(0, 0.1 * time);
+        }      */
         window.clear();
-        window.draw(hero.herosprite);
+        window.draw(back1.backsprite);
+        window.draw(garage1.garagesprite);
+        window.draw(hero.playersprite);
         window.display();
     }
 
