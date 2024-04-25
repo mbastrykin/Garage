@@ -1,4 +1,6 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
+#include <sstream>
 #include "map.h"
 #include "view.h"
 #include "player.h"
@@ -33,9 +35,14 @@ int main()
     sf::RenderWindow window(sf::VideoMode(1920, 1080), "Garage");
     view.reset(sf::FloatRect(0, 0, 640, 480)); //камера ебанна€
 
+    sf::Font font;
+    font.loadFromFile("Fonts/CyrilicOld.TTF");
+    sf::Text text(" ", font, 20);
+    text.setFillColor(sf::Color::Red);
+    text.setStyle(sf::Text::Bold);
 
     sf::Image map_image;
-    map_image.loadFromFile("Image/Background/map.png");
+    map_image.loadFromFile("Image/Background/map2.png");
     sf::Texture map;
     map.loadFromImage(map_image);
     sf::Sprite s_map;
@@ -58,30 +65,38 @@ int main()
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
-
         }
 
         getPlayerCoordinateForView(hero.getPlayerCoordinateX(), hero.getPlayerCoordinateY());
 
+        
         hero.Move(time);
         hero.update(time);
         changeView();
         window.setView(view);
-        window.clear();
+        window.clear(sf::Color(85,170,255));
 
         for (int i = 0; i < HEIGHT_MAP; i++)
             for (int ii = 0; ii < WIDTH_MAP; ii++) {
                 if (TileMap[i][ii] == ' ')s_map.setTextureRect(sf::IntRect(0, 0, 32, 32));
                 if (TileMap[i][ii] == 's')s_map.setTextureRect(sf::IntRect(32, 0, 32, 32));
                 if (TileMap[i][ii] == '0')s_map.setTextureRect(sf::IntRect(64, 0, 32, 32));
+                if (TileMap[i][ii] == 'f')s_map.setTextureRect(sf::IntRect(96, 0, 32, 32));// цветок
+                if (TileMap[i][ii] == 'h')s_map.setTextureRect(sf::IntRect(128, 0, 32, 32));// сердчеко
 
                 s_map.setPosition(ii * 32, i * 32);
                 window.draw(s_map);
             }
         
+        std::ostringstream playerScoreString;    // объ€вили переменную
+        playerScoreString << hero.playerScore;		//занесли в нее число очков, то есть формируем строку
+        text.setString("—обрано камней:" + playerScoreString.str());//задаем строку тексту и вызываем сформированную выше строку методом .str() 
+        text.setPosition(view.getCenter().x - 165, view.getCenter().y - 200);//задаем позицию текста, отступа€ от центра камеры
+        window.draw(text);//рисую этот текст
         //window.draw(map.sprite); 
         /*window.draw(s_map)*/;
         window.draw(hero.sprite);
+        window.draw(text);
         window.display();
 
     }

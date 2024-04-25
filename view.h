@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include "player.h"
 sf::View view;
 
 // для отслеживания текущего и целевого масштаба
@@ -22,6 +23,7 @@ float minZoom = 1.0000f;
 sf::View changeView() {
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
 		view.zoom(1.0001f);
+		
 	}
 	if  (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
 		view.zoom(1.0001f);
