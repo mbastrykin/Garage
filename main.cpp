@@ -1,72 +1,104 @@
 #include <SFML/Graphics.hpp>
-#include <iostream>
+#include <SFML/Audio.hpp>
+#include <sstream>
+#include "map.h"
+#include "view.h"
+#include "player.h"
 
-
-sf::RenderWindow window(sf::VideoMode(640, 480), "Garage");
-
-class Hero {
-public: 
-    double x, y, Weight, Height;
-    sf::Texture herotexture;
-    sf::Sprite herosprite;
-
-    Hero() {
-        herotexture.loadFromFile("Image/Hero/hero.png");
-        herosprite.setTexture(herotexture);
-        herosprite.setTextureRect(sf::IntRect(0, 192, 96, 96));
-        herosprite.setPosition(50, 25);
-    }
-    
-    void move(double offsetX, double offsetY) {
-        herosprite.move(offsetX, offsetY);
-    }
-};
-
-//class Garage {
-//public: 
-//    double x, y, Weight, Height;
-//    sf::Texture garagetexture;
-//    sf::Sprite garagesprite;
-//    Garage() {
-//        garagetexture.loadFromFile("Image/Hero/hero.png");
-//        garagesprite.setTexture(garagetexture);
-//        garagesprite.setTextureRect(sf::IntRect(0, 192, 96, 96));
-//        garagesprite.setPosition(50, 25);
+//class Map {
+//public:
+//    std::string File;
+//    sf::Texture texture_map;
+//    sf::Sprite sprite_map;
+//    sf::Image image_map;
+//
+//    Map(std::string F) {
+//        File = F;
+//        image_map.loadFromFile("Image/Background/" + File);
+//        texture_map.loadFromImage(image_map);
+//        sprite_map.setTexture(texture_map);
+//        for (int i = 0; i < HEIGHT_MAP; i++)
+//            for (int ii = 0; ii < WIDTH_MAP; ii++) {
+//                sf::Sprite tile_sprite(sprite_map);
+//                if (TileMap[i][ii] == ' ')sprite_map.setTextureRect(sf::IntRect(0, 0, 32, 32));
+//                if (TileMap[i][ii] == 's')sprite_map.setTextureRect(sf::IntRect(32, 0, 32, 32));
+//                if (TileMap[i][ii] == '0')sprite_map.setTextureRect(sf::IntRect(64, 0, 32, 32));
+//
+//                sprite_map.setPosition(ii * 32, i * 32);
+//                window.draw(tile_sprite);
+//            }
 //    }
 //};
 
-
 int main()
 {
-    Hero hero;
-    sf::Clock clock;
+    sf::RenderWindow window(sf::VideoMode(1920, 1080), "Garage");
+    view.reset(sf::FloatRect(0, 0, 640, 480)); //камера ебанна€
+
+    sf::Font font;
+    font.loadFromFile("Fonts/CyrilicOld.TTF");
+    sf::Text text(" ", font, 20);
+    text.setFillColor(sf::Color::Red);
+    text.setStyle(sf::Text::Bold);
+
+    sf::Image map_image;
+    map_image.loadFromFile("Image/Background/map2.png");
+    sf::Texture map;
+    map.loadFromImage(map_image);
+    sf::Sprite s_map;
+    s_map.setTexture(map);
+
+    Player hero("hero.png", 250, 250, 96.0, 96.0);
+    /*Map map("map.png");*/
+
     double CurrentFrame = 0;
+    sf::Clock clock;
+
     while (window.isOpen()) {
+
+        float time = clock.getElapsedTime().asMicroseconds();
+        clock.restart();
+        int delaytime = 600;
+        time = time / delaytime++;
+
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
         }
 
-        if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A)))) {
-            hero.move(-0.1, 0);
-            hero.herosprite.setTextureRect(sf::IntRect(0, 96, 96, 96));
-        }
-        if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || (sf::Keyboard::isKeyPressed(sf::Keyboard::D)))) {
-            hero.move(0.1, 0); 
-            hero.herosprite.setTextureRect(sf::IntRect(0, 192, 96, 96));
-        }
-        if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::W))) {
-            hero.move(0, -0.1);
-            hero.herosprite.setTextureRect(sf::IntRect(0, 288, 96, 96));
-        }
-        if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::S))){
-            hero.move(0, 0.1);
-            hero.herosprite.setTextureRect(sf::IntRect(0, 0, 96, 96));
-        } 
-        window.clear();
-        window.draw(hero.herosprite);
+        getPlayerCoordinateForView(hero.getPlayerCoordinateX(), hero.getPlayerCoordinateY());
+
+        
+        hero.Move(time);
+        hero.update(time);
+        changeView();
+        window.setView(view);
+        window.clear(sf::Color(85,170,255));
+
+        for (int i = 0; i < HEIGHT_MAP; i++)
+            for (int ii = 0; ii < WIDTH_MAP; ii++) {
+                if (TileMap[i][ii] == ' ')s_map.setTextureRect(sf::IntRect(0, 0, 32, 32));
+                if (TileMap[i][ii] == 's')s_map.setTextureRect(sf::IntRect(32, 0, 32, 32));
+                if (TileMap[i][ii] == '0')s_map.setTextureRect(sf::IntRect(64, 0, 32, 32));
+                if (TileMap[i][ii] == 'f')s_map.setTextureRect(sf::IntRect(96, 0, 32, 32));// цветок
+                if (TileMap[i][ii] == 'h')s_map.setTextureRect(sf::IntRect(128, 0, 32, 32));// сердчеко
+
+                s_map.setPosition(ii * 32, i * 32);
+                window.draw(s_map);
+            }
+        
+        std::ostringstream playerScoreString;    // объ€вили переменную
+        playerScoreString << hero.playerScore;		//занесли в нее число очков, то есть формируем строку
+        text.setString("—обрано камней:" + playerScoreString.str());//задаем строку тексту и вызываем сформированную выше строку методом .str() 
+        text.setPosition(view.getCenter().x - 165, view.getCenter().y - 200);//задаем позицию текста, отступа€ от центра камеры
+        window.draw(text);//рисую этот текст
+        //window.draw(map.sprite); 
+        /*window.draw(s_map)*/;
+        window.draw(hero.sprite);
+        window.draw(text);
         window.display();
+
     }
 
     return 0;
